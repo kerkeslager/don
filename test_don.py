@@ -1,9 +1,7 @@
 import collections
 import unittest
 
-import don
-from don import binary
-from don import string
+from don import *
 
 class TestBinarySerialize(unittest.TestCase):
     def test_serializes_null(self):
@@ -116,7 +114,64 @@ class TestBinaryDeserialize(unittest.TestCase):
 
 
 class TestStringSerialize(unittest.TestCase):
-    pass
+    def test_serializes_null(self):
+        self.assertEqual(string.serialize(None), 'null')
+
+    def test_serializes_true(self):
+        self.assertEqual(string.serialize(True), 'true')
+
+    def test_serializes_false(self):
+        self.assertEqual(string.serialize(False), 'false')
+
+    def test_serializes_int8(self):
+        self.assertEqual(string.serialize(TaggedObject(INT8, 1)), '1i8')
+        self.assertEqual(string.serialize(TaggedObject(INT8, -1)), '-1i8')
+        self.assertEqual(string.serialize(TaggedObject(INT8, 42)), '42i8')
+
+    def test_serializes_int16(self):
+        self.assertEqual(string.serialize(TaggedObject(INT16, 1)), '1i16')
+        self.assertEqual(string.serialize(TaggedObject(INT16, -1)), '-1i16')
+        self.assertEqual(string.serialize(TaggedObject(INT16, 42)), '42i16')
+
+    def test_serializes_int32(self):
+        self.assertEqual(string.serialize(TaggedObject(INT32, 1)), '1i32')
+        self.assertEqual(string.serialize(TaggedObject(INT32, -1)), '-1i32')
+        self.assertEqual(string.serialize(TaggedObject(INT32, 42)), '42i32')
+
+    def test_serializes_int64(self):
+        self.assertEqual(string.serialize(TaggedObject(INT64, 1)), '1i64')
+        self.assertEqual(string.serialize(TaggedObject(INT64, -1)), '-1i64')
+        self.assertEqual(string.serialize(TaggedObject(INT64, 42)), '42i64')
+
+    def test_serializes_float(self):
+        self.assertEqual(string.serialize(TaggedObject(FLOAT, 1.0)), '1.0f')
+
+    def test_serializes_double(self):
+        self.assertEqual(string.serialize(TaggedObject(DOUBLE, 1.0)), '1.0d')
+
+    def test_serializes_binary(self):
+        self.assertEqual(string.serialize(TaggedObject(BINARY, b'\xde\xad\xbe\xef')), '"deadbeef"b')
+
+    def test_serializes_utf8(self):
+        self.assertEqual(string.serialize(TaggedObject(UTF8, 'Hello, world')), '"Hello, world"utf8')
+
+    def test_serializes_utf16(self):
+        self.assertEqual(string.serialize(TaggedObject(UTF16, 'Hello, world')), '"Hello, world"utf16')
+
+    def test_serializes_utf32(self):
+        self.assertEqual(string.serialize(TaggedObject(UTF32, 'Hello, world')), '"Hello, world"utf32')
+
+    def test_serializes_list(self):
+        self.assertEqual(string.serialize(TaggedObject(LIST, [1,2,3])), '[1i32, 2i32, 3i32]')
+
+    def test_serializes_dictionary(self):
+        self.assertEqual(
+            string.serialize(TaggedObject(DICTIONARY, collections.OrderedDict([
+                ('foo', 1),
+                ('bar', 'baz'),
+            ]))),
+            '{ "foo"utf8: 1i32, "bar"utf8: "baz"utf8 }'
+        )
 
 class TestStringDeserialize(unittest.TestCase):
     pass

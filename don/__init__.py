@@ -1,3 +1,4 @@
+import binascii
 import collections
 import struct
 
@@ -34,7 +35,7 @@ _TYPES_TO_TAGS = {
     collections.OrderedDict: DICTIONARY,
 }
 
-def tag(o):
+def _tag(o):
     if isinstance(o, TaggedObject):
         return o
 
@@ -49,41 +50,41 @@ def tag(o):
 
     return TaggedObject(tag = _TYPES_TO_TAGS[type(o)], value = o)
 
-def serialize_tag_only_type(o):
+def _binary_serialize_tag_only_type(o):
     return b''
 
-def make_serializer_from_pack_format_string(pfs):
+def _pack_format_string_to_binary_serializer(pfs):
     def serializer(i):
         return struct.pack(pfs, i)
     return serializer
 
-def make_string_serializer_from_encoder(e):
+def _encoder_to_binary_serializer(e):
     def serializer(s):
         encoded = e(s)
         return struct.pack('!I', len(encoded)) + encoded
     return serializer
 
-def serialize_list(items):
+def _binary_serialize_list(items):
     # TODO Enforce that items are all the same type
-    items = [tag(i) for i in items]
+    items = [_tag(i) for i in items]
 
     if len(items) == 0:
         item_tag = VOID
     else:
         item_tag = items[0].tag
 
-    item_serializer = _SERIALIZERS[item_tag]
+    item_serializer = _BINARY_SERIALIZERS[item_tag]
     items = [item_serializer(i.value) for i in items]
     item_length = len(items)
     items = b''.join(items)
     byte_length = len(items)
     return struct.pack('!BII', item_tag, byte_length, item_length) + items
 
-def serialize_dict(d):
+def _binary_serialize_dict(d):
     item_length = 0
     serialized = b''
 
-    key_serializer = _SERIALIZERS[UTF8]
+    key_serializer = _BINARY_SERIALIZERS[UTF8]
 
     for key, value in d.items():
         assert isinstance(key, str)
@@ -93,26 +94,26 @@ def serialize_dict(d):
     byte_length = len(serialized)
     return struct.pack('!II', byte_length, item_length) + serialized
 
-_SERIALIZERS = {
-    VOID: serialize_tag_only_type,
-    TRUE: serialize_tag_only_type,
-    FALSE: serialize_tag_only_type,
-    INT8: make_serializer_from_pack_format_string('!b'),
-    INT16: make_serializer_from_pack_format_string('!h'),
-    INT32: make_serializer_from_pack_format_string('!i'),
-    FLOAT: make_serializer_from_pack_format_string('!f'),
-    DOUBLE: make_serializer_from_pack_format_string('!d'),
-    BINARY: make_string_serializer_from_encoder(lambda b: b),
-    UTF8: make_string_serializer_from_encoder(lambda s: s.encode('utf-8')),
-    UTF16: make_string_serializer_from_encoder(lambda s: s.encode('utf-16')),
-    UTF32: make_string_serializer_from_encoder(lambda s: s.encode('utf-32')),
-    LIST: serialize_list,
-    DICTIONARY: serialize_dict,
+_BINARY_SERIALIZERS = {
+    VOID: _binary_serialize_tag_only_type,
+    TRUE: _binary_serialize_tag_only_type,
+    FALSE: _binary_serialize_tag_only_type,
+    INT8: _pack_format_string_to_binary_serializer('!b'),
+    INT16: _pack_format_string_to_binary_serializer('!h'),
+    INT32: _pack_format_string_to_binary_serializer('!i'),
+    FLOAT: _pack_format_string_to_binary_serializer('!f'),
+    DOUBLE: _pack_format_string_to_binary_serializer('!d'),
+    BINARY: _encoder_to_binary_serializer(lambda b: b),
+    UTF8: _encoder_to_binary_serializer(lambda s: s.encode('utf-8')),
+    UTF16: _encoder_to_binary_serializer(lambda s: s.encode('utf-16')),
+    UTF32: _encoder_to_binary_serializer(lambda s: s.encode('utf-32')),
+    LIST: _binary_serialize_list,
+    DICTIONARY: _binary_serialize_dict,
 }
 
 def _binary_serialize(o):
-    o = tag(o)
-    return struct.pack('!B', o.tag) + _SERIALIZERS[o.tag](o.value)
+    o = _tag(o)
+    return struct.pack('!B', o.tag) + _BINARY_SERIALIZERS[o.tag](o.value)
 
 ParseResult = collections.namedtuple(
     'ParseResult',
@@ -162,7 +163,7 @@ def make_string_parser(decoder):
 
     return string_parser
 
-def list_parser(source):
+def _list_parser(source):
     tag = source[0]
     parser = _TAGS_TO_PARSERS[tag]
 
@@ -235,7 +236,7 @@ _TAGS_TO_PARSERS = {
     UTF8: make_string_parser(lambda b : b.decode('utf-8')),
     UTF16: make_string_parser(lambda b : b.decode('utf-16')),
     UTF32: make_string_parser(lambda b : b.decode('utf-32')),
-    LIST: list_parser,
+    LIST: _list_parser,
     DICTIONARY: dictionary_parser,
 }
 
@@ -253,11 +254,75 @@ def _parse(parser, source, consume_all = True):
 def _binary_deserialize(b):
     return _parse(_object_parser, b)
 
+def _integer_size_to_string_serializer(integer_size):
+    minimum = -(2 ** (integer_size - 1))
+    maximum = 2 ** (integer_size - 1) - 1
+    
+    def serializer(integer):
+        assert minimum <= integer and integer <= maximum
+        return '{}i{}'.format(integer, integer_size)
+
+    return serializer
+
+def _serialize_float(f):
+    return '{}f'.format(f)
+
+def _serialize_double(d):
+    return '{}d'.format(d)
+
+def _serialize_binary(b):
+    return '"{}"b'.format(binascii.hexlify(b).decode('ascii'))
+
+def _utf_encoding_to_serializer(utf_encoding):
+    def serializer(s):
+        return '"{}"{}'.format(s, utf_encoding)
+
+    return serializer
+
+def _string_serialize_list(l):
+    return '[{}]'.format(', '.join(map(_string_serialize, l)))
+
+def _string_serialize_dictionary(d):
+    def serialize_kvp(kvp):
+        return _string_serialize(kvp[0]) + ': ' + _string_serialize(kvp[1])
+    return '{ ' + ', '.join(map(serialize_kvp, d.items())) + ' }'
+
+_STRING_SERIALIZERS = {
+    VOID: lambda o: 'null',
+    TRUE: lambda o: 'true',
+    FALSE: lambda o: 'false',
+    INT8: _integer_size_to_string_serializer(8),
+    INT16: _integer_size_to_string_serializer(16),
+    INT32: _integer_size_to_string_serializer(32),
+    INT64: _integer_size_to_string_serializer(64),
+    FLOAT: _serialize_float,
+    DOUBLE: _serialize_double,
+    BINARY: _serialize_binary,
+    UTF8: _utf_encoding_to_serializer('utf8'),
+    UTF16: _utf_encoding_to_serializer('utf16'),
+    UTF32: _utf_encoding_to_serializer('utf32'),
+    LIST: _string_serialize_list,
+    DICTIONARY: _string_serialize_dictionary,
+}
+
+def _string_serialize(o):
+    o = _tag(o)
+    
+    return _STRING_SERIALIZERS[o.tag](o.value)
+
+def _string_deserialize(o):
+    pass
+
 Serializer = collections.namedtuple('Serializer', ['serialize', 'deserialize'])
 
 binary = Serializer(
     serialize = _binary_serialize,
     deserialize = _binary_deserialize,
+)
+
+string = Serializer(
+    serialize = _string_serialize,
+    deserialize = _string_deserialize,
 )
 
 def binary_to_string(b):

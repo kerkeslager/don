@@ -1,0 +1,30 @@
+The following needs doing before a 1.0 release:
+1. String serialization settings (defaults):
+    a. Width (80)
+    b. Maintain tags for default types (true)
+    c. Handling of non-displayable and non-ascii characters
+2. String deserialization settings (defaults):
+    a. Default string type (utf-8)
+    b. Defailt integer type (int32)
+    c. Default decimal type (double)
+    d. Maintain tags universally, not at all, or only for non-default types (universally)
+3. Binary serialization settings (defaults):
+    a. Default string type (utf-8)
+    b. Default integer type (int32)
+    c. Default decimal type (double)
+4. Binary deserialization settings (defaults):
+    a. Maintain tags universally, not at all, or only for non-default types (universally)
+    b. Return lists as iterables or as lists (lists)
+    c. Return dictionaries as OrderedDicts, dicts, lists of key-value pairs, or iterables of key-value pairs (OrderedDict)
+5. Add unsinged integer types.
+6. Think about type signatures for string serialization (do we want 1i32 or 1int32?).
+7. Include the string encoding byte for dictionary keys.
+    a. It adds only 1 byte per key.
+    b. It prevents excessively long keys in utf16 friendly languages.
+8. Consider limiting key string length to 2^16 or even 2^8:
+    a. It saves 2 or 3 bytes per key, and keys are typically short.
+    b. Perhaps we should create a struct type with this feature.
+9. Add a rationale doc that includes rationale for the technical decisions made.
+10. Binary deserialization needs tooling for lazy deserializtion and deserializing from buffers.
+11. String escaping in string serialization and deserialization.
+12. 
