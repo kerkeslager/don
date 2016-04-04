@@ -2,8 +2,8 @@ import collections
 import unittest
 
 import don
-import don.binary as binary
-import don.string as string
+from don import binary
+from don import string
 
 class TestBinarySerialize(unittest.TestCase):
     def test_serializes_null(self):
