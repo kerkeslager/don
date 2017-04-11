@@ -1,7 +1,7 @@
 import collections
 import struct
 
-from don import constants, _shared
+from don import tags, _shared
 
 def _binary_serialize_tag_only_type(o):
     return b''
@@ -19,10 +19,10 @@ def _encoder_to_binary_serializer(e):
 
 def _binary_serialize_list(items):
     # TODO Enforce that items are all the same type
-    items = [_shared._tag(i) for i in items]
+    items = [tags._tag(i) for i in items]
 
     if len(items) == 0:
-        item_tag = constants.VOID
+        item_tag = tags.VOID
     else:
         item_tag = items[0].tag
 
@@ -37,7 +37,7 @@ def _binary_serialize_dict(d):
     item_length = 0
     serialized = b''
 
-    key_serializer = _BINARY_SERIALIZERS[constants.UTF8]
+    key_serializer = _BINARY_SERIALIZERS[tags.UTF8]
 
     for key, value in d.items():
         assert isinstance(key, str)
@@ -48,24 +48,24 @@ def _binary_serialize_dict(d):
     return struct.pack('!II', byte_length, item_length) + serialized
 
 _BINARY_SERIALIZERS = {
-    constants.VOID: _binary_serialize_tag_only_type,
-    constants.TRUE: _binary_serialize_tag_only_type,
-    constants.FALSE: _binary_serialize_tag_only_type,
-    constants.INT8: _pack_format_string_to_binary_serializer('!b'),
-    constants.INT16: _pack_format_string_to_binary_serializer('!h'),
-    constants.INT32: _pack_format_string_to_binary_serializer('!i'),
-    constants.FLOAT: _pack_format_string_to_binary_serializer('!f'),
-    constants.DOUBLE: _pack_format_string_to_binary_serializer('!d'),
-    constants.BINARY: _encoder_to_binary_serializer(lambda b: b),
-    constants.UTF8: _encoder_to_binary_serializer(lambda s: s.encode('utf-8')),
-    constants.UTF16: _encoder_to_binary_serializer(lambda s: s.encode('utf-16')),
-    constants.UTF32: _encoder_to_binary_serializer(lambda s: s.encode('utf-32')),
-    constants.LIST: _binary_serialize_list,
-    constants.DICTIONARY: _binary_serialize_dict,
+    tags.VOID: _binary_serialize_tag_only_type,
+    tags.TRUE: _binary_serialize_tag_only_type,
+    tags.FALSE: _binary_serialize_tag_only_type,
+    tags.INT8: _pack_format_string_to_binary_serializer('!b'),
+    tags.INT16: _pack_format_string_to_binary_serializer('!h'),
+    tags.INT32: _pack_format_string_to_binary_serializer('!i'),
+    tags.FLOAT: _pack_format_string_to_binary_serializer('!f'),
+    tags.DOUBLE: _pack_format_string_to_binary_serializer('!d'),
+    tags.BINARY: _encoder_to_binary_serializer(lambda b: b),
+    tags.UTF8: _encoder_to_binary_serializer(lambda s: s.encode('utf-8')),
+    tags.UTF16: _encoder_to_binary_serializer(lambda s: s.encode('utf-16')),
+    tags.UTF32: _encoder_to_binary_serializer(lambda s: s.encode('utf-32')),
+    tags.LIST: _binary_serialize_list,
+    tags.DICTIONARY: _binary_serialize_dict,
 }
 
 def serialize(o):
-    o = _shared._tag(o)
+    o = tags._tag(o)
     return struct.pack('!B', o.tag) + _BINARY_SERIALIZERS[o.tag](o.value)
 
 _BYTE_SIZES_TO_UNPACK_FORMATS = {
@@ -136,7 +136,7 @@ def _list_parser(source):
     )
 
 def dictionary_parser(source):
-    key_parser = _TAGS_TO_PARSERS[constants.UTF8]
+    key_parser = _TAGS_TO_PARSERS[tags.UTF8]
 
     byte_length, item_length = struct.unpack('!II', source[:8])
     source = source[8:]
@@ -166,20 +166,20 @@ def dictionary_parser(source):
 
 
 _TAGS_TO_PARSERS = {
-    constants.VOID: lambda r: _shared.ParseResult(True, None, r),
-    constants.TRUE: lambda r: _shared.ParseResult(True, True, r),
-    constants.FALSE: lambda r: _shared.ParseResult(True, False, r),
-    constants.INT8: make_integer_parser(1),
-    constants.INT16: make_integer_parser(2),
-    constants.INT32: make_integer_parser(4),
-    constants.INT64: make_integer_parser(8),
-    constants.DOUBLE: binary64_parser,
-    constants.BINARY: make_string_parser(lambda b : b),
-    constants.UTF8: make_string_parser(lambda b : b.decode('utf-8')),
-    constants.UTF16: make_string_parser(lambda b : b.decode('utf-16')),
-    constants.UTF32: make_string_parser(lambda b : b.decode('utf-32')),
-    constants.LIST: _list_parser,
-    constants.DICTIONARY: dictionary_parser,
+    tags.VOID: lambda r: _shared.ParseResult(True, None, r),
+    tags.TRUE: lambda r: _shared.ParseResult(True, True, r),
+    tags.FALSE: lambda r: _shared.ParseResult(True, False, r),
+    tags.INT8: make_integer_parser(1),
+    tags.INT16: make_integer_parser(2),
+    tags.INT32: make_integer_parser(4),
+    tags.INT64: make_integer_parser(8),
+    tags.DOUBLE: binary64_parser,
+    tags.BINARY: make_string_parser(lambda b : b),
+    tags.UTF8: make_string_parser(lambda b : b.decode('utf-8')),
+    tags.UTF16: make_string_parser(lambda b : b.decode('utf-16')),
+    tags.UTF32: make_string_parser(lambda b : b.decode('utf-32')),
+    tags.LIST: _list_parser,
+    tags.DICTIONARY: dictionary_parser,
 }
 
 def _object_parser(source):

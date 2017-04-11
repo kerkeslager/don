@@ -1,6 +1,6 @@
 import binascii
 
-from don import constants, _shared
+from don import tags, _shared
 
 def _integer_size_to_string_serializer(integer_size):
     minimum = -(2 ** (integer_size - 1))
@@ -36,25 +36,25 @@ def _string_serialize_dictionary(d):
     return '{ ' + ', '.join(map(serialize_kvp, d.items())) + ' }'
 
 _STRING_SERIALIZERS = {
-    constants.VOID: lambda o: 'null',
-    constants.TRUE: lambda o: 'true',
-    constants.FALSE: lambda o: 'false',
-    constants.INT8: _integer_size_to_string_serializer(8),
-    constants.INT16: _integer_size_to_string_serializer(16),
-    constants.INT32: _integer_size_to_string_serializer(32),
-    constants.INT64: _integer_size_to_string_serializer(64),
-    constants.FLOAT: _serialize_float,
-    constants.DOUBLE: _serialize_double,
-    constants.BINARY: _serialize_binary,
-    constants.UTF8: _utf_encoding_to_serializer('utf8'),
-    constants.UTF16: _utf_encoding_to_serializer('utf16'),
-    constants.UTF32: _utf_encoding_to_serializer('utf32'),
-    constants.LIST: _string_serialize_list,
-    constants.DICTIONARY: _string_serialize_dictionary,
+    tags.VOID: lambda o: 'null',
+    tags.TRUE: lambda o: 'true',
+    tags.FALSE: lambda o: 'false',
+    tags.INT8: _integer_size_to_string_serializer(8),
+    tags.INT16: _integer_size_to_string_serializer(16),
+    tags.INT32: _integer_size_to_string_serializer(32),
+    tags.INT64: _integer_size_to_string_serializer(64),
+    tags.FLOAT: _serialize_float,
+    tags.DOUBLE: _serialize_double,
+    tags.BINARY: _serialize_binary,
+    tags.UTF8: _utf_encoding_to_serializer('utf8'),
+    tags.UTF16: _utf_encoding_to_serializer('utf16'),
+    tags.UTF32: _utf_encoding_to_serializer('utf32'),
+    tags.LIST: _string_serialize_list,
+    tags.DICTIONARY: _string_serialize_dictionary,
 }
 
 def serialize(o):
-    o = _shared._tag(o)
+    o = tags._tag(o)
     
     return _STRING_SERIALIZERS[o.tag](o.value)
 
