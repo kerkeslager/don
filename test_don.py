@@ -1,7 +1,8 @@
 import collections
 import unittest
 
-from don import *
+import don
+from don import binary, string
 
 class TestBinarySerialize(unittest.TestCase):
     def test_serializes_null(self):
@@ -124,56 +125,72 @@ class TestStringSerialize(unittest.TestCase):
         self.assertEqual(string.serialize(False), 'false')
 
     def test_serializes_int8(self):
-        self.assertEqual(string.serialize(TaggedObject(INT8, 1)), '1i8')
-        self.assertEqual(string.serialize(TaggedObject(INT8, -1)), '-1i8')
-        self.assertEqual(string.serialize(TaggedObject(INT8, 42)), '42i8')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT8, 1)), '1i8')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT8, -1)), '-1i8')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT8, 42)), '42i8')
 
     def test_serializes_int16(self):
-        self.assertEqual(string.serialize(TaggedObject(INT16, 1)), '1i16')
-        self.assertEqual(string.serialize(TaggedObject(INT16, -1)), '-1i16')
-        self.assertEqual(string.serialize(TaggedObject(INT16, 42)), '42i16')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT16, 1)), '1i16')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT16, -1)), '-1i16')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT16, 42)), '42i16')
 
     def test_serializes_int32(self):
-        self.assertEqual(string.serialize(TaggedObject(INT32, 1)), '1i32')
-        self.assertEqual(string.serialize(TaggedObject(INT32, -1)), '-1i32')
-        self.assertEqual(string.serialize(TaggedObject(INT32, 42)), '42i32')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT32, 1)), '1i32')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT32, -1)), '-1i32')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT32, 42)), '42i32')
 
     def test_serializes_int64(self):
-        self.assertEqual(string.serialize(TaggedObject(INT64, 1)), '1i64')
-        self.assertEqual(string.serialize(TaggedObject(INT64, -1)), '-1i64')
-        self.assertEqual(string.serialize(TaggedObject(INT64, 42)), '42i64')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT64, 1)), '1i64')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT64, -1)), '-1i64')
+        self.assertEqual(string.serialize(don.TaggedObject(don.INT64, 42)), '42i64')
 
     def test_serializes_float(self):
-        self.assertEqual(string.serialize(TaggedObject(FLOAT, 1.0)), '1.0f')
+        self.assertEqual(string.serialize(don.TaggedObject(don.FLOAT, 1.0)), '1.0f')
 
     def test_serializes_double(self):
-        self.assertEqual(string.serialize(TaggedObject(DOUBLE, 1.0)), '1.0d')
+        self.assertEqual(string.serialize(don.TaggedObject(don.DOUBLE, 1.0)), '1.0d')
 
     def test_serializes_binary(self):
-        self.assertEqual(string.serialize(TaggedObject(BINARY, b'\xde\xad\xbe\xef')), '"deadbeef"b')
+        self.assertEqual(string.serialize(don.TaggedObject(don.BINARY, b'\xde\xad\xbe\xef')), '"deadbeef"b')
 
     def test_serializes_utf8(self):
-        self.assertEqual(string.serialize(TaggedObject(UTF8, 'Hello, world')), '"Hello, world"utf8')
+        self.assertEqual(string.serialize(don.TaggedObject(don.UTF8, 'Hello, world')), '"Hello, world"utf8')
 
     def test_serializes_utf16(self):
-        self.assertEqual(string.serialize(TaggedObject(UTF16, 'Hello, world')), '"Hello, world"utf16')
+        self.assertEqual(string.serialize(don.TaggedObject(don.UTF16, 'Hello, world')), '"Hello, world"utf16')
 
     def test_serializes_utf32(self):
-        self.assertEqual(string.serialize(TaggedObject(UTF32, 'Hello, world')), '"Hello, world"utf32')
+        self.assertEqual(string.serialize(don.TaggedObject(don.UTF32, 'Hello, world')), '"Hello, world"utf32')
 
     def test_serializes_list(self):
-        self.assertEqual(string.serialize(TaggedObject(LIST, [1,2,3])), '[1i32, 2i32, 3i32]')
+        self.assertEqual(string.serialize(don.TaggedObject(don.LIST, [1,2,3])), '[1i32, 2i32, 3i32]')
 
     def test_serializes_dictionary(self):
         self.assertEqual(
-            string.serialize(TaggedObject(DICTIONARY, collections.OrderedDict([
+            string.serialize(don.TaggedObject(don.DICTIONARY, collections.OrderedDict([
                 ('foo', 1),
                 ('bar', 'baz'),
             ]))),
             '{ "foo"utf8: 1i32, "bar"utf8: "baz"utf8 }'
         )
 
-class TestStringDeserialize(unittest.TestCase):
-    pass
+#   class TestStringDeserialize(unittest.TestCase):
+#       def test_deserializes_null(self):
+#           self.assertEqual(
+#               None,
+#               string.deserialize('null'),
+#           )
+#       
+#       def test_deserializes_null(self):
+#           self.assertEqual(
+#               True,
+#               string.deserialize('true'),
+#           )
+#       
+#       def test_deserializes_null(self):
+#           self.assertEqual(
+#               False,
+#               string.deserialize('false'),
+#           )
 
 unittest.main()
