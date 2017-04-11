@@ -185,7 +185,7 @@ _TAGS_TO_PARSERS = {
 def _object_parser(source):
     return _TAGS_TO_PARSERS[source[0]](source[1:])
 
-def _parse(parser, source, consume_all = True):
+def _parse(parser, source):
     result = parser(source)
 
     if result.success and result.remaining == b'':

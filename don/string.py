@@ -58,5 +58,42 @@ def serialize(o):
     
     return _STRING_SERIALIZERS[o.tag](o.value)
 
+def _make_constant_parser(constant, value):
+    def parser(s):
+        if s.startswith(constant):
+            result = _shared.ParseResult(
+                success = True,
+                value = value,
+                remaining = s[len(constant):],
+            )
+            return result
+
+        return _shared._FAILED_PARSE_RESULT
+
+    return parser
+
+_PARSERS = [
+    _make_constant_parser('null', None),
+    _make_constant_parser('true', True),
+    _make_constant_parser('false', False),
+]
+
+def _object_parser(source):
+    for parser in _PARSERS:
+        result = parser(source)
+
+        if result.success:
+            return result
+
+    return _shared._FAILED_PARSE_RESULT
+
+def _parse(parser, source):
+    result = parser(source)
+
+    if result.success and result.remaining.strip() == '':
+        return result.value
+
+    raise Exception('Unparsed trailing characters: "{}"'.format(result.remaining))
+
 def deserialize(s):
-    pass
+    return _parse(_object_parser, s)

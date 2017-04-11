@@ -173,23 +173,23 @@ class TestStringSerialize(unittest.TestCase):
             '{ "foo"utf8: 1i32, "bar"utf8: "baz"utf8 }'
         )
 
-#   class TestStringDeserialize(unittest.TestCase):
-#       def test_deserializes_null(self):
-#           self.assertEqual(
-#               None,
-#               string.deserialize('null'),
-#           )
-#       
-#       def test_deserializes_null(self):
-#           self.assertEqual(
-#               True,
-#               string.deserialize('true'),
-#           )
-#       
-#       def test_deserializes_null(self):
-#           self.assertEqual(
-#               False,
-#               string.deserialize('false'),
-#           )
+class TestStringDeserialize(unittest.TestCase):
+    def test_deserializes_null(self):
+        self.assertEqual(
+            None,
+            string.deserialize('null'),
+        )
+
+    def test_deserializes_null(self):
+        self.assertEqual(
+            True,
+            string.deserialize('true'),
+        )
+
+    def test_deserializes_null(self):
+        self.assertEqual(
+            False,
+            string.deserialize('false'),
+        )
 
 unittest.main()
