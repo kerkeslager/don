@@ -80,6 +80,7 @@ def _make_integer_parser(width):
         match = matcher.match(s)
 
         if match:
+            # TODO Validate that the integer is in range
             return _shared.ParseResult(
                 success = True,
                 value = int(match.group(1)),
@@ -90,6 +91,52 @@ def _make_integer_parser(width):
 
     return parser
 
+_BINARY32_MATCHER = re.compile(r'(-?\d+\.\d+)f')
+_BINARY64_MATCHER = re.compile(r'(-?\d+\.\d+)d')
+
+def _binary32_parser(s):
+    match = _BINARY32_MATCHER.match(s)
+
+    if match:
+        # TODO Validate that the double is in range
+        return _shared.ParseResult(
+            success = True,
+            value = float(match.group(1)),
+            remaining = s[match.end():],
+        )
+
+    return _shared._FAILED_PARSE_RESULT
+
+def _binary64_parser(s):
+    match = _BINARY64_MATCHER.match(s)
+
+    if match:
+        # TODO Validate that the double is in range
+        return _shared.ParseResult(
+            success = True,
+            value = float(match.group(1)),
+            remaining = s[match.end():],
+        )
+
+    return _shared._FAILED_PARSE_RESULT
+
+_BINARY_MATCHER = re.compile(r'"([\da-f]*)"b')
+
+def _binary_parser(s):
+    match = _BINARY_MATCHER.match(s)
+
+    if match:
+        # TODO Validate that the double is in range
+        return _shared.ParseResult(
+            success = True,
+            value = binascii.unhexlify(match.group(1)),
+            remaining = s[match.end():],
+        )
+
+    return _shared._FAILED_PARSE_RESULT
+
+
+
 _PARSERS = [
     _make_constant_parser('null', None),
     _make_constant_parser('true', True),
@@ -98,6 +145,9 @@ _PARSERS = [
     _make_integer_parser(16),
     _make_integer_parser(32),
     _make_integer_parser(64),
+    _binary32_parser,
+    _binary64_parser,
+    _binary_parser,
 ]
 
 def _object_parser(source):

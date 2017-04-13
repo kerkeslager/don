@@ -208,4 +208,22 @@ class TestStringDeserialize(unittest.TestCase):
         self.assertEqual(10, string.deserialize('10i64'))
         self.assertEqual(-1, string.deserialize('-1i64'))
 
+    def test_deserializes_float(self):
+        self.assertEqual(1.0, string.deserialize('1.0f'))
+
+    def test_deserializes_double(self):
+        self.assertEqual(1.0, string.deserialize('1.0d'))
+
+    def test_serializes_binary(self):
+        self.assertEqual(
+            b'\xde\xad\xbe\xef',
+            string.deserialize(b'\x30\x00\x00\x00\x04\xde\xad\xbe\xef'),
+        )
+
+    def test_serializes_binary(self):
+        self.assertEqual(
+            b'\xde\xad\xbe\xef',
+            string.deserialize('"deadbeef"b'),
+        )
+
 unittest.main()
