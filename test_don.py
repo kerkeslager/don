@@ -192,4 +192,20 @@ class TestStringDeserialize(unittest.TestCase):
             string.deserialize('false'),
         )
 
+    def test_deserializes_int8(self):
+        self.assertEqual(10, string.deserialize('10i8'))
+        self.assertEqual(-1, string.deserialize('-1i8'))
+
+    def test_deserializes_int16(self):
+        self.assertEqual(10, string.deserialize('10i16'))
+        self.assertEqual(-1, string.deserialize('-1i16'))
+
+    def test_deserializes_int32(self):
+        self.assertEqual(10, string.deserialize('10i32'))
+        self.assertEqual(-1, string.deserialize('-1i32'))
+
+    def test_deserializes_int64(self):
+        self.assertEqual(10, string.deserialize('10i64'))
+        self.assertEqual(-1, string.deserialize('-1i64'))
+
 unittest.main()

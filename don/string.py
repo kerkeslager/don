@@ -1,4 +1,5 @@
 import binascii
+import re
 
 from don import tags, _shared
 
@@ -72,10 +73,31 @@ def _make_constant_parser(constant, value):
 
     return parser
 
+def _make_integer_parser(width):
+    matcher = re.compile(r'(-?\d+)i' + str(width))
+
+    def parser(s):
+        match = matcher.match(s)
+
+        if match:
+            return _shared.ParseResult(
+                success = True,
+                value = int(match.group(1)),
+                remaining = s[match.end():],
+            )
+
+        return _shared._FAILED_PARSE_RESULT
+
+    return parser
+
 _PARSERS = [
     _make_constant_parser('null', None),
     _make_constant_parser('true', True),
     _make_constant_parser('false', False),
+    _make_integer_parser(8),
+    _make_integer_parser(16),
+    _make_integer_parser(32),
+    _make_integer_parser(64),
 ]
 
 def _object_parser(source):
@@ -90,10 +112,13 @@ def _object_parser(source):
 def _parse(parser, source):
     result = parser(source)
 
-    if result.success and result.remaining.strip() == '':
-        return result.value
+    if result.success:
+        if result.remaining.strip() == '':
+            return result.value
 
-    raise Exception('Unparsed trailing characters: "{}"'.format(result.remaining))
+        raise Exception('Unparsed trailing characters: "{}"'.format(result.remaining))
+
+    raise Exception('Unable to parse: "{}"'.format(source))
 
 def deserialize(s):
     return _parse(_object_parser, s)
