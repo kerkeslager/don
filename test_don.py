@@ -214,16 +214,34 @@ class TestStringDeserialize(unittest.TestCase):
     def test_deserializes_double(self):
         self.assertEqual(1.0, string.deserialize('1.0d'))
 
-    def test_serializes_binary(self):
-        self.assertEqual(
-            b'\xde\xad\xbe\xef',
-            string.deserialize(b'\x30\x00\x00\x00\x04\xde\xad\xbe\xef'),
-        )
-
-    def test_serializes_binary(self):
+    def test_deserializes_binary(self):
         self.assertEqual(
             b'\xde\xad\xbe\xef',
             string.deserialize('"deadbeef"b'),
+        )
+
+    def test_deserializes_utf8(self):
+        self.assertEqual(
+            "Hello, world",
+            string.deserialize('"Hello, world"utf8'),
+        )
+
+    def test_deserializes_utf16(self):
+        self.assertEqual(
+            "Hello, world",
+            string.deserialize('"Hello, world"utf16'),
+        )
+
+    def test_deserializes_utf32(self):
+        self.assertEqual(
+            "Hello, world",
+            string.deserialize('"Hello, world"utf32'),
+        )
+
+    def test_deserializes_list(self):
+        self.assertEqual(
+            [1,2,3,4,5],
+            string.deserialize("[1i8,2i8,3i8,4i8,5i8]"),
         )
 
 unittest.main()

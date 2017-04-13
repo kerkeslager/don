@@ -98,7 +98,7 @@ def _binary32_parser(s):
     match = _BINARY32_MATCHER.match(s)
 
     if match:
-        # TODO Validate that the double is in range
+        # TODO Validate that the float is in range
         return _shared.ParseResult(
             success = True,
             value = float(match.group(1)),
@@ -126,7 +126,6 @@ def _binary_parser(s):
     match = _BINARY_MATCHER.match(s)
 
     if match:
-        # TODO Validate that the double is in range
         return _shared.ParseResult(
             success = True,
             value = binascii.unhexlify(match.group(1)),
@@ -135,6 +134,67 @@ def _binary_parser(s):
 
     return _shared._FAILED_PARSE_RESULT
 
+def _make_utf_parser(encoding):
+    matcher = re.compile(r'"(.*?)"' + encoding)
+
+    def parser(s):
+        match = matcher.match(s)
+
+        if match:
+            return _shared.ParseResult(
+                success = True,
+                value = match.group(1),
+                remaining = s[match.end():],
+            )
+
+        return _shared._FAILED_PARSE_RESULT
+
+    return parser
+
+def _prefix_with_comma(parser):
+    def wrapped(s):
+        if s.startswith(','):
+            s = s[1:]
+
+            result = parser(s)
+            if not result.success:
+                raise Exception('Trailing comma before "{}"'.format(s))
+
+            return result
+
+        return _shared._FAILED_PARSE_RESULT
+
+    return wrapped
+
+def _list_parser(s):
+    # TODO Assert they are all the same type
+    if not s.startswith('['):
+        return _shared._FAILED_PARSE_RESULT
+    s = s[1:]
+
+    value = []
+
+    first = True
+    parse_result = _object_parser(s)
+
+    while parse_result.success:
+        value.append(parse_result.value)
+        s = parse_result.remaining
+        parse_result = _prefix_with_comma(_object_parser)(s)
+
+    if not s.startswith(']'):
+        return _shared._FAILED_PARSE_RESULT
+
+    return _shared.ParseResult(
+        success = True,
+        value = value,
+        remaining = s[1:],
+    )
+
+
+
+def _dictionary_parser(s):
+    return _shared._FAILED_PARSE_RESULT
 
 
 _PARSERS = [
@@ -148,6 +208,11 @@ _PARSERS = [
     _binary32_parser,
     _binary64_parser,
     _binary_parser,
+    _make_utf_parser('utf8'),
+    _make_utf_parser('utf16'),
+    _make_utf_parser('utf32'),
+    _list_parser,
+    _dictionary_parser,
 ]
 
 def _object_parser(source):
