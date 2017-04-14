@@ -308,6 +308,12 @@ class TestStringDeserialize(unittest.TestCase):
             string.deserialize("[1i8,2i8,3i8,4i8,5i8]"),
         )
 
+    def test_deserializes_list_with_leading_whitespace(self):
+        self.assertEqual(
+            [1,2,3,4,5],
+            string.deserialize(" \t\n[ \t\n1i8 \t\n, \t\n2i8 \t\n, \t\n3i8 \t\n, \t\n4i8 \t\n, \t\n5i8 \t\n]"),
+        )
+
     def test_deserializes_dictionary(self):
         self.assertEqual(
             collections.OrderedDict([
@@ -315,6 +321,15 @@ class TestStringDeserialize(unittest.TestCase):
                 ('bar', 'baz'),
             ]),
             string.deserialize('{"foo"utf8:1i32,"bar"utf8:"baz"utf8}'),
+        )
+
+    def test_deserializes_dictionary_with_leading_whitespace(self):
+        self.assertEqual(
+            collections.OrderedDict([
+                ('foo', 1),
+                ('bar', 'baz'),
+            ]),
+            string.deserialize(' \t\n{ \t\n"foo"utf8 \t\n: \t\n1i32 \t\n, \t\n"bar"utf8 \t\n: \t\n"baz"utf8 \t\n}'),
         )
 
 unittest.main()

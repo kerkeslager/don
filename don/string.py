@@ -168,6 +168,7 @@ def _make_utf_parser(encoding):
     return utf_parser
 
 def _make_consume_constant_parser(constant):
+    @_consume_leading_whitespace
     def consume_character_parser(s):
         if s.startswith(constant):
             return _shared.ParseResult(
