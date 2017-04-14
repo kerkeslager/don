@@ -167,27 +167,45 @@ def _make_utf_parser(encoding):
 
     return utf_parser
 
+def _make_consume_constant_parser(constant):
+    def consume_character_parser(s):
+        if s.startswith(constant):
+            return _shared.ParseResult(
+                success = True,
+                value = None,
+                remaining = s[len(constant):],
+            )
+        return _shared._FAILED_PARSE_RESULT
+
+    return consume_character_parser
+
+_consume_comma_parser = _make_consume_constant_parser(',')
+
 def _prefix_with_comma(parser):
     def wrapped(s):
-        if s.startswith(','):
-            s = s[1:]
+        result = _consume_comma_parser(s)
+        if result.success:
+            s = result.remaining
+        else:
+            return _shared._FAILED_PARSE_RESULT
 
-            result = parser(s)
-            if not result.success:
-                raise Exception('Trailing comma before "{}"'.format(s))
+        result = parser(s)
+        if not result.success:
+            raise Exception('Trailing comma before "{}"'.format(s))
 
-            return result
-
-        return _shared._FAILED_PARSE_RESULT
+        return result
 
     return wrapped
 
 def _comma_separate_and_wrap(wrapped_parser, start_wrap, end_wrap, typecaster):
     parser_prefixed_with_comma = _prefix_with_comma(wrapped_parser)
+    start_wrap_parser = _make_consume_constant_parser(start_wrap)
+    end_wrap_parser = _make_consume_constant_parser(end_wrap)
 
     def parser(s):
-        if s.startswith(start_wrap):
-            s = s[1:]
+        result = start_wrap_parser(s)
+        if result.success:
+            s = result.remaining
         else:
             return _shared._FAILED_PARSE_RESULT
 
@@ -201,8 +219,9 @@ def _comma_separate_and_wrap(wrapped_parser, start_wrap, end_wrap, typecaster):
             s = parse_result.remaining
             parse_result = parser_prefixed_with_comma(s)
 
-        if s.startswith(end_wrap):
-            s = s[1:]
+        result = end_wrap_parser(s)
+        if result.success:
+            s = result.remaining
         else:
             return _shared._FAILED_PARSE_RESULT
 
@@ -227,6 +246,8 @@ def _object_parser(source):
 
 _list_parser = _comma_separate_and_wrap(_object_parser, '[', ']', list)
 
+_consume_colon_parser = _make_consume_constant_parser(':')
+
 def _kvp_parser(s):
     key_parse_result = _object_parser(s)
     if key_parse_result.success:
@@ -234,8 +255,9 @@ def _kvp_parser(s):
     else:
         return _shared._FAILED_PARSE_RESULT
 
-    if s.startswith(':'):
-        s = s[1:]
+    result = _consume_colon_parser(s)
+    if result.success:
+        s = result.remaining
     else:
         return _shared._FAILED_PARSE_RESULT
 
