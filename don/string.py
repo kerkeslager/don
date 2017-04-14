@@ -136,6 +136,7 @@ def _binary64_parser(s):
 
 _BINARY_MATCHER = re.compile(r'"([\da-f]*)"b')
 
+@_consume_leading_whitespace
 def _binary_parser(s):
     match = _BINARY_MATCHER.match(s)
 
@@ -151,7 +152,8 @@ def _binary_parser(s):
 def _make_utf_parser(encoding):
     matcher = re.compile(r'"(.*?)"' + encoding)
 
-    def parser(s):
+    @_consume_leading_whitespace
+    def utf_parser(s):
         match = matcher.match(s)
 
         if match:
@@ -163,7 +165,7 @@ def _make_utf_parser(encoding):
 
         return _shared._FAILED_PARSE_RESULT
 
-    return parser
+    return utf_parser
 
 def _prefix_with_comma(parser):
     def wrapped(s):

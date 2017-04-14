@@ -260,6 +260,12 @@ class TestStringDeserialize(unittest.TestCase):
             string.deserialize('"deadbeef"b'),
         )
 
+    def test_deserializes_binary_with_leading_whitespace(self):
+        self.assertEqual(
+            b'\xde\xad\xbe\xef',
+            string.deserialize(' \t\n"deadbeef"b'),
+        )
+
     def test_deserializes_utf8(self):
         self.assertEqual(
             "Hello, world",
@@ -276,6 +282,24 @@ class TestStringDeserialize(unittest.TestCase):
         self.assertEqual(
             "Hello, world",
             string.deserialize('"Hello, world"utf32'),
+        )
+
+    def test_deserializes_utf8_with_leading_whitespace(self):
+        self.assertEqual(
+            "Hello, world",
+            string.deserialize(' \t\n"Hello, world"utf8'),
+        )
+
+    def test_deserializes_utf16_with_leading_whitespace(self):
+        self.assertEqual(
+            "Hello, world",
+            string.deserialize(' \t\n"Hello, world"utf16'),
+        )
+
+    def test_deserializes_utf32_with_leading_whitespace(self):
+        self.assertEqual(
+            "Hello, world",
+            string.deserialize(' \t\n"Hello, world"utf32'),
         )
 
     def test_deserializes_list(self):
