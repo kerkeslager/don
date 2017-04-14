@@ -245,8 +245,14 @@ class TestStringDeserialize(unittest.TestCase):
     def test_deserializes_float(self):
         self.assertEqual(1.0, string.deserialize('1.0f'))
 
+    def test_deserializes_float_with_leading_whitspace(self):
+        self.assertEqual(1.0, string.deserialize(' \t\n1.0f'))
+
     def test_deserializes_double(self):
         self.assertEqual(1.0, string.deserialize('1.0d'))
+
+    def test_deserializes_double_with_leading_whitespace(self):
+        self.assertEqual(1.0, string.deserialize(' \t\n1.0d'))
 
     def test_deserializes_binary(self):
         self.assertEqual(

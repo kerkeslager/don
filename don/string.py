@@ -106,6 +106,7 @@ def _make_integer_parser(width):
 _BINARY32_MATCHER = re.compile(r'(-?\d+\.\d+)f')
 _BINARY64_MATCHER = re.compile(r'(-?\d+\.\d+)d')
 
+@_consume_leading_whitespace
 def _binary32_parser(s):
     match = _BINARY32_MATCHER.match(s)
 
@@ -119,6 +120,7 @@ def _binary32_parser(s):
 
     return _shared._FAILED_PARSE_RESULT
 
+@_consume_leading_whitespace
 def _binary64_parser(s):
     match = _BINARY64_MATCHER.match(s)
 
