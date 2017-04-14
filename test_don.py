@@ -180,33 +180,67 @@ class TestStringDeserialize(unittest.TestCase):
             string.deserialize('null'),
         )
 
-    def test_deserializes_null(self):
+    def test_deserializes_null_with_leading_whitespace(self):
+        self.assertEqual(
+            None,
+            string.deserialize(' \t\nnull'),
+        )
+
+    def test_deserializes_true(self):
         self.assertEqual(
             True,
             string.deserialize('true'),
         )
 
-    def test_deserializes_null(self):
+    def test_deserializes_true_with_leading_whitespace(self):
+        self.assertEqual(
+            True,
+            string.deserialize(' \t\ntrue'),
+        )
+
+    def test_deserializes_false(self):
         self.assertEqual(
             False,
             string.deserialize('false'),
+        )
+
+    def test_deserializes_false_with_leading_whitespace(self):
+        self.assertEqual(
+            False,
+            string.deserialize(' \t\nfalse'),
         )
 
     def test_deserializes_int8(self):
         self.assertEqual(10, string.deserialize('10i8'))
         self.assertEqual(-1, string.deserialize('-1i8'))
 
+    def test_deserializes_int8_with_leading_whitespace(self):
+        self.assertEqual(10, string.deserialize(' \t\n10i8'))
+        self.assertEqual(-1, string.deserialize(' \t\n-1i8'))
+
     def test_deserializes_int16(self):
         self.assertEqual(10, string.deserialize('10i16'))
         self.assertEqual(-1, string.deserialize('-1i16'))
+
+    def test_deserializes_int16_with_leading_whitespace(self):
+        self.assertEqual(10, string.deserialize(' \t\n10i16'))
+        self.assertEqual(-1, string.deserialize(' \t\n-1i16'))
 
     def test_deserializes_int32(self):
         self.assertEqual(10, string.deserialize('10i32'))
         self.assertEqual(-1, string.deserialize('-1i32'))
 
+    def test_deserializes_int32_with_leading_whitespace(self):
+        self.assertEqual(10, string.deserialize(' \t\n10i32'))
+        self.assertEqual(-1, string.deserialize(' \t\n-1i32'))
+
     def test_deserializes_int64(self):
         self.assertEqual(10, string.deserialize('10i64'))
         self.assertEqual(-1, string.deserialize('-1i64'))
+
+    def test_deserializes_int64_with_leading_whitespace(self):
+        self.assertEqual(10, string.deserialize(' \t\n10i64'))
+        self.assertEqual(-1, string.deserialize(' \t\n-1i64'))
 
     def test_deserializes_float(self):
         self.assertEqual(1.0, string.deserialize('1.0f'))

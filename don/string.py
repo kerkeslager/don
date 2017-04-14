@@ -1,5 +1,6 @@
 import binascii
 import collections
+import functools
 import re
 
 from don import tags, _shared
@@ -60,8 +61,17 @@ def serialize(o):
     
     return _STRING_SERIALIZERS[o.tag](o.value)
 
-def _make_constant_parser(constant, value):
+def _consume_leading_whitespace(wrapped_parser):
+    @functools.wraps(wrapped_parser)
     def parser(s):
+        s = s.lstrip()
+        return wrapped_parser(s)
+
+    return parser
+
+def _make_constant_parser(constant, value):
+    @_consume_leading_whitespace
+    def constant_parser(s):
         if s.startswith(constant):
             result = _shared.ParseResult(
                 success = True,
@@ -72,12 +82,13 @@ def _make_constant_parser(constant, value):
 
         return _shared._FAILED_PARSE_RESULT
 
-    return parser
+    return constant_parser
 
 def _make_integer_parser(width):
     matcher = re.compile(r'(-?\d+)i' + str(width))
 
-    def parser(s):
+    @_consume_leading_whitespace
+    def integer_parser(s):
         match = matcher.match(s)
 
         if match:
@@ -90,7 +101,7 @@ def _make_integer_parser(width):
 
         return _shared._FAILED_PARSE_RESULT
 
-    return parser
+    return integer_parser
 
 _BINARY32_MATCHER = re.compile(r'(-?\d+\.\d+)f')
 _BINARY64_MATCHER = re.compile(r'(-?\d+\.\d+)d')
