@@ -57,7 +57,7 @@ _STRING_SERIALIZERS = {
 }
 
 def serialize(o):
-    o = tags._tag(o)
+    o = tags.autotag(o)
     
     return _STRING_SERIALIZERS[o.tag](o.value)
 
