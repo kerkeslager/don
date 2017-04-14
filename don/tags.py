@@ -47,3 +47,91 @@ def _tag(o):
         return TaggedObject(tag = FALSE, value = o)
 
     return TaggedObject(tag = _TYPES_TO_TAGS[type(o)], value = o)
+
+_NONE = TaggedObject(tag = VOID, value = None)
+_TRUE = TaggedObject(tag = TRUE, value = True)
+_FALSE = TaggedObject(tag = FALSE, value = False)
+
+_TAGS_TO_IN_RANGE_PREDICATES = collections.OrderedDict([
+    (INT8,  lambda i: -128 <= i and i <= 127),
+    (INT16, lambda i: -32768 <= i and i <= 32767),
+    (INT32, lambda i: -2147483648 <= i and i <= 2147483647),
+    (INT64, lambda i: -9223372036854775808 <= i and i <= 9223372036854775807),
+])
+
+class TooWideError(Exception):
+    pass
+
+SMALLEST = object()
+
+def autotag(o, **kwargs):
+    preferred_integer_tag = kwargs.pop('preferred_integer_tag', DEFAULT_INTEGER_ENCODING)
+    preferred_string_tag = kwargs.pop('preferred_string_tag', DEFAULT_STRING_ENCODING)
+
+    if kwargs:
+        raise TypeError("autotag() got an unexpected keyword argument '{}'".format(
+            list(kwargs.keys())[0],
+        ))
+
+    if isinstance(o, TaggedObject):
+        return o
+
+    if o is None:
+        return _NONE
+
+    if o is True:
+        return _TRUE
+
+    if o is False:
+        return _FALSE
+
+    if isinstance(o, int):
+        if preferred_integer_tag is not SMALLEST and _TAGS_TO_IN_RANGE_PREDICATES[preferred_integer_tag](o):
+            return TaggedObject(tag = preferred_integer_tag, value = o)
+
+        else:
+            for tag, in_range_predicate in _TAGS_TO_IN_RANGE_PREDICATES.items():
+                if in_range_predicate(o):
+                    return TaggedObject(tag = tag, value = o)
+
+            raise TooWideError("Integer {} is too wide to be serialized")
+
+    if isinstance(o, float):
+        raise Exception('Unsupported type {}'.format(type(o)))
+
+    if isinstance(o, str):
+        # TODO Support SMALLEST for preferred string tag
+        return TaggedObject(tag = preferred_string_tag, value = o)
+
+    if isinstance(o, list):
+        return TaggedObject(
+            tag = LIST,
+            value = [
+                autotag(
+                    i,
+                    preferred_integer_tag = preferred_integer_tag,
+                    preferred_string_tag = preferred_string_tag,
+                ) for i in o
+            ],
+        )
+
+    if isinstance(o, dict):
+        return TaggedObject(
+            tag = DICTIONARY,
+            value = collections.OrderedDict([
+                (
+                    autotag(
+                        key,
+                        preferred_integer_tag = preferred_integer_tag,
+                        preferred_string_tag = preferred_string_tag,
+                    ),
+                    autotag(
+                        value,
+                        preferred_integer_tag = preferred_integer_tag,
+                        preferred_string_tag = preferred_string_tag,
+                    ),
+                ) for key, value in o.items()
+            ]),
+        )
+
+    raise Exception('Unsupported type {}'.format(type(o)))
