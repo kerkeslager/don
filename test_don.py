@@ -244,4 +244,13 @@ class TestStringDeserialize(unittest.TestCase):
             string.deserialize("[1i8,2i8,3i8,4i8,5i8]"),
         )
 
+    def test_deserializes_dictionary(self):
+        self.assertEqual(
+            collections.OrderedDict([
+                ('foo', 1),
+                ('bar', 'baz'),
+            ]),
+            string.deserialize('{"foo"utf8:1i32,"bar"utf8:"baz"utf8}'),
+        )
+
 unittest.main()

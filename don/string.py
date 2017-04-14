@@ -1,4 +1,5 @@
 import binascii
+import collections
 import re
 
 from don import tags, _shared
@@ -166,35 +167,76 @@ def _prefix_with_comma(parser):
 
     return wrapped
 
-def _list_parser(s):
-    # TODO Assert they are all the same type
-    if not s.startswith('['):
+def _comma_separate_and_wrap(wrapped_parser, start_wrap, end_wrap, typecaster):
+    parser_prefixed_with_comma = _prefix_with_comma(wrapped_parser)
+
+    def parser(s):
+        if s.startswith(start_wrap):
+            s = s[1:]
+        else:
+            return _shared._FAILED_PARSE_RESULT
+
+        value = []
+        first = True
+
+        parse_result = wrapped_parser(s)
+
+        while parse_result.success:
+            value.append(parse_result.value)
+            s = parse_result.remaining
+            parse_result = parser_prefixed_with_comma(s)
+
+        if s.startswith(end_wrap):
+            s = s[1:]
+        else:
+            return _shared._FAILED_PARSE_RESULT
+
+        return _shared.ParseResult(
+            success = True,
+            value = typecaster(value),
+            remaining = s,
+        )
+
+    return parser
+
+# This uses _PARSERS which has not been defined yet, but is defined here so it can be used in
+# the definition of _list_parser
+def _object_parser(source):
+    for parser in _PARSERS:
+        result = parser(source)
+
+        if result.success:
+            return result
+
+    return _shared._FAILED_PARSE_RESULT
+
+_list_parser = _comma_separate_and_wrap(_object_parser, '[', ']', list)
+
+def _kvp_parser(s):
+    key_parse_result = _object_parser(s)
+    if key_parse_result.success:
+        s = key_parse_result.remaining
+    else:
         return _shared._FAILED_PARSE_RESULT
-    s = s[1:]
 
-    value = []
+    if s.startswith(':'):
+        s = s[1:]
+    else:
+        return _shared._FAILED_PARSE_RESULT
 
-    first = True
-    parse_result = _object_parser(s)
-
-    while parse_result.success:
-        value.append(parse_result.value)
-        s = parse_result.remaining
-        parse_result = _prefix_with_comma(_object_parser)(s)
-
-    if not s.startswith(']'):
+    value_parse_result = _object_parser(s)
+    if value_parse_result.success:
+        s = value_parse_result.remaining
+    else:
         return _shared._FAILED_PARSE_RESULT
 
     return _shared.ParseResult(
         success = True,
-        value = value,
-        remaining = s[1:],
+        value = (key_parse_result.value, value_parse_result.value),
+        remaining = s,
     )
 
-
-
-def _dictionary_parser(s):
-    return _shared._FAILED_PARSE_RESULT
+_dictionary_parser = _comma_separate_and_wrap(_kvp_parser, '{', '}', collections.OrderedDict)
 
 
 _PARSERS = [
@@ -214,15 +256,6 @@ _PARSERS = [
     _list_parser,
     _dictionary_parser,
 ]
-
-def _object_parser(source):
-    for parser in _PARSERS:
-        result = parser(source)
-
-        if result.success:
-            return result
-
-    return _shared._FAILED_PARSE_RESULT
 
 def _parse(parser, source):
     result = parser(source)
