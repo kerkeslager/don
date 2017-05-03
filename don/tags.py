@@ -8,8 +8,9 @@ INT8 = 0x10
 INT16 = 0x11
 INT32 = 0x12
 INT64 = 0x13
-FLOAT = 0x20
-DOUBLE = 0x21
+# These are to be supported in the future
+# FLOAT = 0x20
+# DOUBLE = 0x21
 BINARY = 0x30
 UTF8 = 0x31
 UTF16 = 0x32
@@ -17,15 +18,15 @@ UTF32 = 0x33
 LIST = 0x40
 DICTIONARY = 0x41
 
+STRING_TAGS = set([UTF8, UTF16, UTF32])
+
 DEFAULT_INTEGER_ENCODING = INT32
-DEFAULT_DECIMAL_ENCODING = DOUBLE
 DEFAULT_STRING_ENCODING = UTF8
 
 TaggedObject = collections.namedtuple('TaggedObject', ['tag', 'value'])
 
 _TYPES_TO_TAGS = {
     int: DEFAULT_INTEGER_ENCODING,
-    float: DEFAULT_DECIMAL_ENCODING,
     bytes: BINARY,
     str: DEFAULT_STRING_ENCODING,
     list: LIST,
@@ -96,12 +97,12 @@ def autotag(o, **kwargs):
 
             raise TooWideError("Integer {} is too wide to be serialized")
 
-    if isinstance(o, float):
-        raise Exception('Unsupported type {}'.format(type(o)))
-
     if isinstance(o, str):
         # TODO Support SMALLEST for preferred string tag
         return TaggedObject(tag = preferred_string_tag, value = o)
+
+    if isinstance(o, bytes):
+        return TaggedObject(tag = BINARY, value = o)
 
     if isinstance(o, list):
         return TaggedObject(

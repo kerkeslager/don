@@ -33,6 +33,11 @@ def _binary_serialize_list(items):
     byte_length = len(items)
     return struct.pack('!BII', item_tag, byte_length, item_length) + items
 
+def _serialize_key(o):
+    o = tags.autotag(o)
+    assert o.tag in tags.STRING_TAGS
+    return struct.pack('!B', o.tag) + _BINARY_SERIALIZERS[o.tag](o.value)
+
 def _binary_serialize_dict(d):
     item_length = 0
     serialized = b''
@@ -40,9 +45,8 @@ def _binary_serialize_dict(d):
     key_serializer = _BINARY_SERIALIZERS[tags.UTF8]
 
     for key, value in d.items():
-        assert isinstance(key, str)
         item_length += 1
-        serialized += key_serializer(key) + serialize(value)
+        serialized += _serialize_key(key) + serialize(value)
 
     byte_length = len(serialized)
     return struct.pack('!II', byte_length, item_length) + serialized
@@ -54,8 +58,6 @@ _BINARY_SERIALIZERS = {
     tags.INT8: _pack_format_string_to_binary_serializer('!b'),
     tags.INT16: _pack_format_string_to_binary_serializer('!h'),
     tags.INT32: _pack_format_string_to_binary_serializer('!i'),
-    tags.FLOAT: _pack_format_string_to_binary_serializer('!f'),
-    tags.DOUBLE: _pack_format_string_to_binary_serializer('!d'),
     tags.BINARY: _encoder_to_binary_serializer(lambda b: b),
     tags.UTF8: _encoder_to_binary_serializer(lambda s: s.encode('utf-8')),
     tags.UTF16: _encoder_to_binary_serializer(lambda s: s.encode('utf-16')),
@@ -65,7 +67,7 @@ _BINARY_SERIALIZERS = {
 }
 
 def serialize(o):
-    o = tags._tag(o)
+    o = tags.autotag(o)
     return struct.pack('!B', o.tag) + _BINARY_SERIALIZERS[o.tag](o.value)
 
 _BYTE_SIZES_TO_UNPACK_FORMATS = {
@@ -173,7 +175,6 @@ _TAGS_TO_PARSERS = {
     tags.INT16: make_integer_parser(2),
     tags.INT32: make_integer_parser(4),
     tags.INT64: make_integer_parser(8),
-    tags.DOUBLE: binary64_parser,
     tags.BINARY: make_string_parser(lambda b : b),
     tags.UTF8: make_string_parser(lambda b : b.decode('utf-8')),
     tags.UTF16: make_string_parser(lambda b : b.decode('utf-16')),

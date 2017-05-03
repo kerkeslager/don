@@ -193,6 +193,12 @@ class AutoTagTests(unittest.TestCase):
             tags.TaggedObject(tag = tags.UTF32, value = 'Hello, world'),
         )
 
+    def test_tags_bytes(self):
+        self.assertEqual(
+            tags.autotag(b'\xde\xad\xbe\xef'),
+            tags.TaggedObject(tag = tags.BINARY, value = b'\xde\xad\xbe\xef'),
+        )
+
     def test_tags_list(self):
         self.assertEqual(
             tags.autotag([1,2,3]),

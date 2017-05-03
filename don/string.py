@@ -15,12 +15,6 @@ def _integer_size_to_string_serializer(integer_size):
 
     return serializer
 
-def _serialize_float(f):
-    return '{}f'.format(f)
-
-def _serialize_double(d):
-    return '{}d'.format(d)
-
 def _serialize_binary(b):
     return '"{}"b'.format(binascii.hexlify(b).decode('ascii'))
 
@@ -46,8 +40,6 @@ _STRING_SERIALIZERS = {
     tags.INT16: _integer_size_to_string_serializer(16),
     tags.INT32: _integer_size_to_string_serializer(32),
     tags.INT64: _integer_size_to_string_serializer(64),
-    tags.FLOAT: _serialize_float,
-    tags.DOUBLE: _serialize_double,
     tags.BINARY: _serialize_binary,
     tags.UTF8: _utf_encoding_to_serializer('utf8'),
     tags.UTF16: _utf_encoding_to_serializer('utf16'),
@@ -102,37 +94,6 @@ def _make_integer_parser(width):
         return _shared._FAILED_PARSE_RESULT
 
     return integer_parser
-
-_BINARY32_MATCHER = re.compile(r'(-?\d+\.\d+)f')
-_BINARY64_MATCHER = re.compile(r'(-?\d+\.\d+)d')
-
-@_consume_leading_whitespace
-def _binary32_parser(s):
-    match = _BINARY32_MATCHER.match(s)
-
-    if match:
-        # TODO Validate that the float is in range
-        return _shared.ParseResult(
-            success = True,
-            value = float(match.group(1)),
-            remaining = s[match.end():],
-        )
-
-    return _shared._FAILED_PARSE_RESULT
-
-@_consume_leading_whitespace
-def _binary64_parser(s):
-    match = _BINARY64_MATCHER.match(s)
-
-    if match:
-        # TODO Validate that the double is in range
-        return _shared.ParseResult(
-            success = True,
-            value = float(match.group(1)),
-            remaining = s[match.end():],
-        )
-
-    return _shared._FAILED_PARSE_RESULT
 
 _BINARY_MATCHER = re.compile(r'"([\da-f]*)"b')
 
@@ -285,8 +246,6 @@ _PARSERS = [
     _make_integer_parser(16),
     _make_integer_parser(32),
     _make_integer_parser(64),
-    _binary32_parser,
-    _binary64_parser,
     _binary_parser,
     _make_utf_parser('utf8'),
     _make_utf_parser('utf16'),

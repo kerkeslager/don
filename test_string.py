@@ -33,12 +33,6 @@ class TestStringSerialize(unittest.TestCase):
         self.assertEqual(string.serialize(tags.TaggedObject(tags.INT64, -1)), '-1i64')
         self.assertEqual(string.serialize(tags.TaggedObject(tags.INT64, 42)), '42i64')
 
-    def test_serializes_float(self):
-        self.assertEqual(string.serialize(tags.TaggedObject(tags.FLOAT, 1.0)), '1.0f')
-
-    def test_serializes_double(self):
-        self.assertEqual(string.serialize(tags.TaggedObject(tags.DOUBLE, 1.0)), '1.0d')
-
     def test_serializes_binary(self):
         self.assertEqual(string.serialize(tags.TaggedObject(tags.BINARY, b'\xde\xad\xbe\xef')), '"deadbeef"b')
 
@@ -131,18 +125,6 @@ class TestStringDeserialize(unittest.TestCase):
     def test_deserializes_int64_with_leading_whitespace(self):
         self.assertEqual(10, string.deserialize(' \t\n10i64'))
         self.assertEqual(-1, string.deserialize(' \t\n-1i64'))
-
-    def test_deserializes_float(self):
-        self.assertEqual(1.0, string.deserialize('1.0f'))
-
-    def test_deserializes_float_with_leading_whitspace(self):
-        self.assertEqual(1.0, string.deserialize(' \t\n1.0f'))
-
-    def test_deserializes_double(self):
-        self.assertEqual(1.0, string.deserialize('1.0d'))
-
-    def test_deserializes_double_with_leading_whitespace(self):
-        self.assertEqual(1.0, string.deserialize(' \t\n1.0d'))
 
     def test_deserializes_binary(self):
         self.assertEqual(
