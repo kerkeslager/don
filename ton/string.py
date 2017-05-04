@@ -3,7 +3,7 @@ import collections
 import functools
 import re
 
-from don import tags, _shared
+from ton import tags, _shared
 
 def _integer_size_to_string_serializer(integer_size):
     minimum = -(2 ** (integer_size - 1))

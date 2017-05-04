@@ -1,7 +1,7 @@
 import collections
 import unittest
 
-from don import tags
+from ton import tags
 
 class AutoTagTests(unittest.TestCase):
     def test_autotags_void(self):

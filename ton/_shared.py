@@ -1,6 +1,6 @@
 import collections
 
-from don import tags
+from ton import tags
 
 ParseResult = collections.namedtuple(
     'ParseResult',

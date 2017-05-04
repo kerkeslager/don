@@ -9,11 +9,11 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='don',
+    name='ton',
     version='0.0.1',
     description='A dual-format serialization library and reference implementation for Dual Object Notation',
     long_description=long_description,
-    url='https://github.com/kerkeslager/don',
+    url='https://github.com/kerkeslager/ton',
     author='David Kerkeslager',
     author_email='',
     license='GPL-3.0',

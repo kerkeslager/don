@@ -2,7 +2,7 @@
 import collections
 import unittest
 
-from don import binary, tags
+from ton import binary, tags
 
 class TestBinarySerialize(unittest.TestCase):
     def test_serializes_null(self):

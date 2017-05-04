@@ -1,8 +1,7 @@
 import collections
 import struct
 
-from don import binary
-from don import string
+from ton import binary, string
 
 def binary_to_string(b):
     return string.serialize(binary.deserialize(b))

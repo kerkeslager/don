@@ -1,2 +1,1 @@
-# don
-Dual Object Notation
+# TON: Twofold Object Notation

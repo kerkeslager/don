@@ -1,7 +1,7 @@
 import collections
 import unittest
 
-from don import string, tags
+from ton import string, tags
 
 class TestStringSerialize(unittest.TestCase):
     def test_serializes_null(self):

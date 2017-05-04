@@ -1,7 +1,7 @@
 import collections
 import struct
 
-from don import tags, _shared
+from ton import tags, _shared
 
 def _binary_serialize_tag_only_type(o):
     return b''
