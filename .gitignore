@@ -2,3 +2,7 @@ __pycache__/
 *.swp
 *.swo
 *.pyc
+.env/
+build/
+dist/
+.DS_Store
